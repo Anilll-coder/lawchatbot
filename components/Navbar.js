@@ -4,36 +4,58 @@ import { useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
   const [loadingLogout, setLoadingLogout] = useState(false);
-
+  const router = useRouter();
   const handleLogout = async () => {
     setLoadingLogout(true);
     await signOut({ redirect: false });
     toast.success("Logged out successfully.");
     setLoadingLogout(false);
+    router.push("/");
   };
 
   const isLawyer = session?.user?.role === "lawyer";
+  const isAdmin = session?.user?.role === "admin";
 
-  const AuthButtons = () => (
-    <div className="flex items-center space-x-4">
-      {session ? (
+  return (
+    <nav className="bg-white shadow-md">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        {/* Logo */}
+        <div className="flex items-center space-x-2">
+          <Image src="/balance.gif" alt="logo" className="w-7" width={20} height={20}/>
+          <h1 className="text-2xl font-bold text-gray-900 select-none">LawBot</h1>
+        </div>
+
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
+          <Link href="/" className="hover:text-blue-600 transition">Home</Link>
+          <Link href="/about" className="hover:text-blue-600 transition">About</Link>
+          <Link href="/contact" className="hover:text-blue-600 transition">Contact</Link>
+           {session ? (
         <>
-          <Link href="/chat" className="text-blue-600 hover:underline font-medium">
+          <Link href="/chat-bot" className=" hover:text-blue-600 font-medium">
             Chat
           </Link>
+
           {isLawyer ? (
-            <Link href="/lawyer/dashboard" className="text-green-600 hover:underline font-medium">
+            <Link href="/dashboard/lawyer" className=" hover:text-blue-600 font-medium">
               Lawyer Dashboard
             </Link>
           ) : (
-            <Link href="/lawyer/contact" className="text-gray-600 hover:underline font-medium">
+            <>
+            <Link href="/lawyer/contact" className=" hover:text-blue-600 font-medium">
               Contact Lawyer
             </Link>
+            {isAdmin?<Link href="/dashboard/admin" className=" hover:text-blue-600 font-medium">
+              Admin Dashboard
+            </Link> : <></>}
+            </>
           )}
           <button
             onClick={handleLogout}
@@ -49,24 +71,6 @@ export default function Navbar() {
           </button>
         </Link>
       )}
-    </div>
-  );
-
-  return (
-    <nav className="bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
-          <img src="/balance.gif" alt="logo" className="w-7" />
-          <h1 className="text-2xl font-bold text-gray-900 select-none">LawBot</h1>
-        </div>
-
-        {/* Desktop Links */}
-        <div className="hidden md:flex items-center space-x-8 text-gray-700 font-medium">
-          <Link href="/" className="hover:text-blue-600 transition">Home</Link>
-          <Link href="/about" className="hover:text-blue-600 transition">About</Link>
-          <Link href="/contact" className="hover:text-blue-600 transition">Contact</Link>
-          <AuthButtons />
         </div>
 
         {/* Mobile Toggle Button */}
@@ -97,23 +101,39 @@ export default function Navbar() {
             <Link href="/" onClick={() => setIsOpen(false)} className="hover:text-blue-600">Home</Link>
             <Link href="/about" onClick={() => setIsOpen(false)} className="hover:text-blue-600">About</Link>
             <Link href="/contact" onClick={() => setIsOpen(false)} className="hover:text-blue-600">Contact</Link>
-            {session && (
-              <>
-                {/* <Link href="/chat" onClick={() => setIsOpen(false)} className="hover:text-blue-600">Chat</Link> */}
-                {/* {isLawyer ? (
-                  <Link href="/lawyer/dashboard" onClick={() => setIsOpen(false)} className="hover:text-green-600">
-                    Lawyer Dashboard
-                  </Link>
-                ) : (
-                  <Link href="/lawyer/contact" onClick={() => setIsOpen(false)} className="hover:text-gray-600">
-                    Contact Lawyer
-                  </Link>
-                )} */}
-              </>
-            )}
-            <div className="pt-2">
-              <AuthButtons />
-            </div>
+               {session ? (
+        <>
+          <Link href="/chat-bot"  onClick={() => setIsOpen(false)} className=" hover:text-blue-600 font-medium">
+            Chat
+          </Link>
+         {isLawyer ? (
+            <Link href="/dashboard/lawyer" className=" hover:text-blue-600 font-medium">
+              Lawyer Dashboard
+            </Link>
+          ) : (
+            <>
+            <Link href="/lawyer/contact" className=" hover:text-blue-600 font-medium">
+              Contact Lawyer
+            </Link>
+            {isAdmin?<Link href="/dashboard/admin" className=" hover:text-blue-600 font-medium">
+              Admin Dashboard
+            </Link> : <></>}
+            </>
+          )}
+          <button
+            onClick={handleLogout}
+            className="bg-red-100 w-40 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition "
+          >
+            {loadingLogout ? "Logging out..." : "Logout"}
+          </button>
+        </>
+      ) : (
+        <Link href="/login"  onClick={() => setIsOpen(false)}>
+          <button className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition">
+            Login
+          </button>
+        </Link>
+      )}
           </div>
         </div>
       )}

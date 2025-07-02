@@ -1,0 +1,17 @@
+import { NextResponse } from "next/server";
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
+
+export async function POST(req) {
+  const { id } = await req.json();
+
+  const client = await clientPromise;
+  const db = client.db();
+
+  const result = await db.collection("lawyers").updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { status: "approved" } }
+  );
+
+  return NextResponse.json({ success: true, result });
+}

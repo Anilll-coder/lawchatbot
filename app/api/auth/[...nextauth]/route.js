@@ -10,40 +10,54 @@ const handler = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
-    CredentialsProvider({
+     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "text" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        isLawyer: { label: "Is Lawyer", type: "text" },
       },
       async authorize(credentials) {
-  const client = await clientPromise;
-  const db = client.db("lawbot");
+        const client = await clientPromise;
+        const db = client.db();
 
-  
-const user = await db.collection("users").findOne({
-  email: { $regex: new RegExp(`^${credentials.email}$`, 'i') },
-});
+        const collection = credentials.isLawyer === "true"
+          ? db.collection("lawyers")
+          : credentials.email === "lawchatbot17@gmail.com" ? db.collection("admin"):db.collection("users");
+        
+       const user = await collection.findOne({ email: credentials.email});
+        if (!user) {
+          throw new Error("No user found with this email");
+        }
 
-  console.log("FOUND USER:", user);
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isPasswordValid) {
+          throw new Error("Invalid password");
+        }
 
-  if (!user) {
-    console.log("No user found with this email");
-    return null;
-  }
-
-  const isValid = await bcrypt.compare(credentials.password, user.password);
-  console.log("PASSWORD VALID?", isValid);
-
-  if (!isValid) {
-    return null;
-  }
-
-  return { id: user._id.toString(), name: user.name, email: user.email };
-}
-
+        return {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: credentials.isLawyer === "true" ? "lawyer" : user.email==="lawchatbot17@gmail.com"?"admin":"user",
+        };
+      },
     }),
   ],
+   callbacks: {
+  async jwt({ token, user }) {
+    if (user) {
+     token.role = user.role;
+    } 
+    return token;
+  },
+  async session({ session, token }) {
+    if (token) {
+      session.user.role = token.role;
+    } 
+    return session;
+  },
+},
   secret: process.env.NEXTAUTH_SECRET,
 });
 

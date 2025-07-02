@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -13,13 +12,11 @@ export default function Contact() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    // Here you can handle form submission (e.g., send to email or API)
     setSubmitted(true);
   }
 
   return (
     <>
-    {/* <Navbar/> */}
     <main className="max-w-3xl mx-auto mt-16 px-6 py-12 bg-white rounded-xl shadow-lg border border-gray-200 font-sans">
       <h1 className="text-4xl font-extrabold text-indigo-700 mb-6 select-none">Contact Us</h1>
 

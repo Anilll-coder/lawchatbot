@@ -15,7 +15,7 @@ export async function POST(req) {
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini", // or your preferred model
-      messages: [{ role: "user", content: "You are a helpful legal assistant. Answer clearly but don’t provide legal advice. Give brief matter. Give the reply based on indian jurisdiction .Dont reply to before matter. "+message }],
+      messages: [{ role: "user", content: "You are a helpful legal assistant. Answer clearly but don’t provide legal advice. Give brief matter. Give the reply based on indian jurisdiction and answer only legal queries .Dont reply to before matter. "+message }],
     });
 
     const reply = completion.choices[0].message.content;

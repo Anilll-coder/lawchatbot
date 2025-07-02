@@ -6,15 +6,12 @@ import validator from "validator";
 export async function POST(req) {
   const { name, email, password } = await req.json();
 
-  // ✅ Trim and normalize email
   const cleanEmail = email.trim().toLowerCase();
 
-  // ✅ Email format validation
   if (!validator.isEmail(cleanEmail)) {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
-  // ✅ Password length check (optional)
   if (password.length < 6) {
     return NextResponse.json({ error: "Password must be at least 6 characters long" }, { status: 400 });
   }

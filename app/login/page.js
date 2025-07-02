@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import React from "react";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "", password: "", isLawyer: false });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,17 +30,20 @@ export default function LoginPage() {
       redirect: false,
       email: form.email,
       password: form.password,
+      isLawyer: form.isLawyer ? "true" : "false", 
     });
 
-    setLoading(false);
-
-    if (res.error) {
-      toast.error(res.error);
+    if (res.ok) {
+      toast.success("Login successful");
+      router.push(form.isLawyer ? "/dashboard/lawyer" : "/dashboard");
     } else {
-      toast.success("Logged in successfully!");
-      router.push("/dashboard");
+      toast.error("Invalid email or password");
     }
+
+    setLoading(false);
   };
+
+
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -93,6 +96,23 @@ export default function LoginPage() {
               placeholder="••••••••"
               className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="isLawyer"
+              checked={form.isLawyer || false}
+              onChange={(e) =>
+                setForm({ ...form, isLawyer: e.target.checked })
+              }
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label
+              htmlFor="isLawyer"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Sign in as Lawyer
+            </label>
           </div>
 
           <button

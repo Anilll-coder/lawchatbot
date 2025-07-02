@@ -1,149 +1,103 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useRouter } from "next/navigation";
 
-export default function LawyerSignup() {
-  const router = useRouter()
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    barId: '',
-    expertise: '',
-    availability: '',
-  })
 
-  const [loading, setLoading] = useState(false)
+export default function LawyerSignupForm() {
+  const [form, setForm] = useState({
+    name: '', email: '', password: '', specialization: '',
+    experience: '', state: '', availability: '', bio: '', barId: ''
+  });
+  const router = useRouter();
+  const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = e => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: '' }); 
+  };
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+  const validate = async () => {
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  try {
+    if (!form.name || form.name.trim().length < 2) newErrors.name = 'Enter a valid name';
+    if (!form.email || !emailRegex.test(form.email)) newErrors.email = 'Enter a valid email';
+    if (!form.password || form.password.length < 6) newErrors.password = 'Min 6 characters required';
+    if(!form.barId||form.barId.length<11)newErrors.barId = "Invalid BarId";
+    if (!form.specialization || form.specialization.trim().length < 3) newErrors.specialization = 'Enter specialization';
+    if (!form.experience || isNaN(form.experience) || Number(form.experience) < 0) newErrors.experience = 'Valid number required';
+    if (!form.location || form.location.trim().length < 2) newErrors.location = 'Enter a valid location';
+    if (!form.availability || form.availability.trim().length < 2) newErrors.availability = 'Enter availability';
+    if (!form.bio || form.bio.trim().length < 10) newErrors.bio = 'Bio must be at least 10 characters';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+
+    if (!validate()) return;
+
     const res = await fetch('/api/lawyer/signup', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form)
     });
 
     const data = await res.json();
 
-    if (res.ok) {
-        toast.success("Profile created successfully");
-      router.push('/'); // or show toast
+    if (!res.ok) {
+      toast.dismiss('Error: ' + (data.message || 'Something went wrong'));
     } else {
-      alert(data.error || 'Failed to submit profile');
+      toast.success(data.message)
+      router.push("/login")
     }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Something went wrong!");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
+
+
+
+  const inputStyle = "w-full px-4 py-2 border rounded-md";
+  const errorStyle = "text-sm text-red-500 -mt-2 mb-2 pt-2";
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-16">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-2xl bg-white p-10 rounded-xl shadow-lg space-y-6"
-      >
-        <h1 className="text-3xl font-bold text-gray-800 text-center">Create Lawyer Profile</h1>
+    <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-white shadow-lg rounded-xl space-y-4 mt-2">
+      <h2 className="text-2xl font-bold text-center">Lawyer Registration</h2>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              required
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Phone</label>
-            <input
-              type="tel"
-              name="phone"
-              required
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Bar Registration ID</label>
-            <input
-              type="text"
-              name="barId"
-              required
-              value={formData.barId}
-              onChange={handleChange}
-              className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-medium mb-1">Area of Expertise</label>
+      {['name', 'email', 'password', 'specialization', 'barId', 'experience', 'state', 'availability'].map(field => (
+        <div key={field}>
           <input
-            type="text"
-            name="expertise"
-            required
-            value={formData.expertise}
+            type={field === 'password' ? 'password' : field === 'experience' ? 'number' : 'text'}
+            name={field}
+            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+            value={form[field]}
             onChange={handleChange}
-            className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g., Family Law, Criminal Law"
+            className={inputStyle}
           />
+          {errors[field] && <p className={errorStyle}>{errors[field]}</p>}
         </div>
+      ))}
 
-        <div>
-          <label className="block text-gray-700 font-medium mb-1">Availability</label>
-          <textarea
-            name="availability"
-            required
-            value={formData.availability}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g., Weekdays 9AM–5PM"
-            rows={3}
-          />
-        </div>
+      <div>
+        <textarea
+          name="bio"
+          placeholder="Short Bio"
+          value={form.bio}
+          onChange={handleChange}
+          className={inputStyle}
+        ></textarea>
+        {errors.bio && <p className={errorStyle}>{errors.bio}</p>}
+      </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition"
-        >
-          {loading ? 'Submitting...' : 'Submit Profile'}
-        </button>
-      </form>
-    </main>
-  )
+      <button
+        type="submit"
+        className="w-full bg-black text-white py-2 rounded-md hover:bg-neutral-800"
+      >
+        Register
+      </button>
+    </form>
+  );
 }

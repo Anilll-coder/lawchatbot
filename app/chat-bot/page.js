@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 function formatTime(date) {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -13,6 +14,8 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
   const [thinking, setThinking] = useState(false);
   const messagesEndRef = useRef(null);
+  const { data: session } = useSession();
+  const isLoggedIn = Boolean(session);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -21,6 +24,10 @@ export default function Chat() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!input.trim()) return;
+
+    const chatLimitReached =
+      !isLoggedIn && messages.filter((m) => m.sender === "user").length >= 5;
+    if (chatLimitReached) return;
 
     setMessages((prev) => [
       ...prev,
@@ -47,13 +54,21 @@ export default function Chat() {
       } else {
         setMessages((prev) => [
           ...prev,
-          { sender: "ai", text: "Error: " + (data.error || "Unknown error"), time: new Date() },
+          {
+            sender: "ai",
+            text: "Error: " + (data.error || "Unknown error"),
+            time: new Date(),
+          },
         ]);
       }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { sender: "ai", text: "Request failed: " + err.message, time: new Date() },
+        {
+          sender: "ai",
+          text: "Request failed: " + err.message,
+          time: new Date(),
+        },
       ]);
     }
 
@@ -61,18 +76,22 @@ export default function Chat() {
     setThinking(false);
   }
 
+  const chatLimitReached =
+    !isLoggedIn && messages.filter((m) => m.sender === "user").length >= 5;
+
   return (
-    <div className="max-w-3xl mx-auto mt-8 flex flex-col h-[650px] bg-white rounded-xl shadow-xl border border-gray-200 font-sans">
-      <header className="px-6 py-4 border-b border-gray-300 bg-gray-50 flex items-center justify-center text-xl font-semibold text-gray-800 select-none">
-        ⚖️ Legal AI Chatbot
+    <div className="w-[80vw] mx-auto mt-10 flex flex-col h-[650px] bg-white rounded-3xl shadow-xl border border-gray-200 font-sans">
+      <header className="px-6 py-5 border-b border-gray-300 bg-gradient-to-r from-indigo-100 to-indigo-200 flex items-center justify-center text-2xl font-bold text-gray-800 select-none rounded-t-3xl">
+        ⚖️ LawBot Legal Chat
       </header>
 
-      <main className="flex-1 p-6 overflow-y-auto space-y-6 bg-gray-50">
+      <main className="flex-1 p-6 overflow-y-auto space-y-6 bg-gray-50 w-full">
         {messages.length === 0 && (
           <p className="text-center text-gray-400 italic select-none mt-28">
             Ask your legal questions below...
           </p>
         )}
+
         <AnimatePresence>
           {messages.map((msg, idx) => (
             <motion.div
@@ -82,7 +101,9 @@ export default function Chat() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
               className={`flex items-end max-w-[75%] ${
-                msg.sender === "user" ? "justify-end ml-auto" : "justify-start"
+                msg.sender === "user"
+                  ? "justify-end ml-auto"
+                  : "justify-start"
               }`}
             >
               <div
@@ -97,7 +118,9 @@ export default function Chat() {
                 {msg.text}
                 <span
                   className={`absolute bottom-[-18px] text-[10px] font-mono select-none opacity-60 ${
-                    msg.sender === "user" ? "right-3 text-indigo-200" : "left-3 text-gray-500"
+                    msg.sender === "user"
+                      ? "right-3 text-indigo-200"
+                      : "left-3 text-gray-500"
                   }`}
                 >
                   {formatTime(msg.time)}
@@ -119,19 +142,30 @@ export default function Chat() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {!isLoggedIn && chatLimitReached && (
+          <div className="text-center text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg py-3 px-4">
+            You&apos;ve reached the 5 message limit.{" "}
+            <a href="/login" className="underline">
+              Login to continue chatting
+            </a>
+            .
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </main>
 
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-4 p-4 border-t border-gray-300 bg-white"
+        className="flex items-center gap-4 p-4 border-t border-gray-300 bg-white w-full"
       >
         <textarea
           rows={1}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your question here..."
-          disabled={loading}
+          disabled={loading || chatLimitReached}
           className="flex-1 resize-none border border-gray-300 rounded-lg p-3 text-gray-900
             focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow duration-300
             placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -144,17 +178,17 @@ export default function Chat() {
         />
         <button
           type="submit"
-          disabled={loading || !input.trim()}
-          className={`flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-white transition-colors duration-300
+          disabled={loading || !input.trim() || chatLimitReached}
+          className={`flex items-center justify-center px-4 py-3 rounded-lg font-semibold text-white transition-colors duration-300
             ${
-              loading || !input.trim()
+              loading || !input.trim() || chatLimitReached
                 ? "bg-indigo-300 cursor-not-allowed"
                 : "bg-indigo-600 hover:bg-indigo-700"
             }`}
         >
           {loading ? (
             <svg
-              className="animate-spin h-5 w-5 mr-2 text-white"
+              className="animate-spin h-5 w-5 text-white"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -173,8 +207,22 @@ export default function Chat() {
                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
               ></path>
             </svg>
-          ) : null}
-          {loading ? "Sending..." : "Send"}
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 10.5l18-6-6 18-2.25-7.5L3 10.5z"
+              />
+            </svg>
+          )}
         </button>
       </form>
     </div>

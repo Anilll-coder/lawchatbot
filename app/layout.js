@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <SessionWrapper>
           <Navbar/>
-        {children}
+          {children}
          <Toaster position="top-right"/>
         </SessionWrapper>
       
