@@ -32,7 +32,7 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold text-indigo-700">
             Welcome back,{" "}
             <span className="text-indigo-900">
-              {isAdmin?"Admin":session?.user?.name || session?.user?.email || "User"}
+              {isAdmin==="admin"?"Admin":session?.user?.name || session?.user?.email || "User"}
             </span>
             !
           </h1>
