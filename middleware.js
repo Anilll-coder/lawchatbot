@@ -1,14 +1,11 @@
-// middleware.js
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 
-// Paths that should be PUBLIC
 const PUBLIC_PATHS = ["/", "/login", "/signup", "/api/auth"];
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // Allow requests to _next, static, favicon, etc.
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/static") ||
@@ -17,12 +14,10 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-  // Allow public routes without authentication
-  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+  if (PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path + "/"))) {
     return NextResponse.next();
   }
 
-  // All other routes require authentication
   const token = await getToken({ req });
 
   if (!token) {
@@ -31,3 +26,7 @@ export async function middleware(req) {
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};
