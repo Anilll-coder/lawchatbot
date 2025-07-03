@@ -17,7 +17,7 @@ export async function POST(request) {
 
     await collection.insertOne({
       lawyerId,
-      lawemail,
+      lawEmail: lawemail,
       Client:email,
       requestedAt: new Date(),
     });
