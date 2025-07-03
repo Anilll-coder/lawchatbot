@@ -28,7 +28,7 @@ export default function LawyerDashboard() {
     }
 
     fetchRequests();
-  }, [session?.user?.email]);
+  }, [session?.user?.email],);
 
   const handleResponse = async (requestId, action, Client) => {
     try {
