@@ -1,8 +1,8 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
+import eslintPluginNext from "eslint-plugin-next";
+import tailwindcss from "eslint-plugin-tailwindcss";
 import { FlatCompat } from "@eslint/eslintrc";
-
-const { next } = eslint-config-next;
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,17 +11,20 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-
-const eslintConfig = [
+export default [
+  // Import legacy Next.js config
   ...compat.extends("next/core-web-vitals"),
+
+  // Custom rules using flat config format
   {
-    languageOptions: {
-      sourceType: "module",
+    files: ["**/*.{js,ts,jsx,tsx}"],
+    plugins: {
+      next: eslintPluginNext,
+      tailwindcss,
     },
     rules: {
-      // custom rules can go here if needed
+      // Optional: customize rules
+      "tailwindcss/no-custom-classname": "off",
     },
   },
 ];
-
-export default eslintConfig;
