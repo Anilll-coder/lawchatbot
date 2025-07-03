@@ -167,3 +167,4 @@ export default function LoginPage() {
     </section>
   );
 }
+export const dynamic = "force-dynamic";
