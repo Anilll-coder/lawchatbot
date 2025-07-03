@@ -62,10 +62,10 @@ router.push(`/chat/${res.data.chatId}`);
   }
 
 
-  const handleRequestChat = async (lawyerId) => {
+  const handleRequestChat = async (lawyerId,lawemail) => {
     setLoadingId(lawyerId);
     try {
-      await axios.post("/api/chat-requests", { lawyerId, email });
+      await axios.post("/api/chat-requests", { lawyerId,lawemail,email });
       setSuccessId(lawyerId);
     } catch (error) {
       console.error("Chat request failed", error);
@@ -113,7 +113,7 @@ router.push(`/chat/${res.data.chatId}`);
           
             ) : (
               <button
-                onClick={() => handleRequestChat(lawyer._id)}
+                onClick={() => handleRequestChat(lawyer._id,lawyer.email)}
                 className="mt-4 inline-block text-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
                 disabled={loadingId === lawyer._id || successId === lawyer._id}
               >

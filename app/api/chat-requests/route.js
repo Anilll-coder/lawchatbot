@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { lawyerId,email } = body;
+    const { lawyerId,lawemail,email } = body;
 
     if (!lawyerId) {
       return NextResponse.json({ message: "Missing lawyerId" }, { status: 400 });
@@ -13,13 +13,11 @@ export async function POST(request) {
 
     const client = await clientPromise;
     const db = client.db();
-    const laweyr = await db.collection("lawyers").findOne({_id:new ObjectId(lawyerId)})
-    const lawEmail = laweyr.email;
     const collection = db.collection("chatRequests");
 
     await collection.insertOne({
       lawyerId,
-      lawEmail,
+      lawemail,
       Client:email,
       requestedAt: new Date(),
     });
