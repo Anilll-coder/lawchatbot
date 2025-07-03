@@ -10,7 +10,7 @@ export async function POST(req) {
 
     const responses = await db
       .collection("responses")
-      .find({ lawEmail })
+      .find( lawEmail )
       .sort({ respondedAt: -1 })
       .toArray();
 
