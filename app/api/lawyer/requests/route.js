@@ -14,10 +14,10 @@ export async function POST(req) {
     const db = client.db();
 
     // Fetch all chat requests for this lawyer
-    const requests = await db.collection("chatRequests").find({ lawEmail }).toArray();
+    const requests = await db.collection("chatRequests").find( lawEmail ).toArray();
 
-    // Fetch all responses for this lawyer
-    const responses = await db.collection("responses").find({ lawEmail }).toArray();
+  
+    const responses = await db.collection("responses").find( lawEmail ).toArray();
 
     // Create a map of responses
     const responseMap = new Map();
